@@ -12,4 +12,6 @@ public class Job
     // Extra properties
     public string EmployerId { get; set; }
     public ApplicationUser Employer { get; set; }
+    public ICollection<Application> Applications { get; set; }
+
 }
