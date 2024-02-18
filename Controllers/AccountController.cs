@@ -42,6 +42,16 @@ public class AccountController : Controller
        
         return Ok(loginResponse);
     }
+    [HttpGet("Confirm")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
+    {
+        var result = await _userRepository.Confirm(userId, token);
+        if (!result.Succeeded) {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
    
 
   
