@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JobPortal.Controllers;
-
+[Route("api/[controller]")]
+[ApiController]
 public class AccountController : Controller
 {
     private readonly IUserRepository _userRepository;

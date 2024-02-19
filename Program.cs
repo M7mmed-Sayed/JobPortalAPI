@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using JobPortal.Data;
+using JobPortal.DTO.ReturnObjects;
 using JobPortal.Models;
 using JobPortal.Repository;
 using JobPortal.Repository.InterfaceRepository;
@@ -25,6 +26,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddResponseCaching();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
 
 
 var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
