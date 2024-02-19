@@ -1,6 +1,4 @@
-﻿using Azure.Core;
-using JobPortal.Data;
-using JobPortal.DTO;
+﻿using JobPortal.DTO;
 using JobPortal.DTO.ReturnObjects;
 using JobPortal.Models;
 using JobPortal.Repository.IRepostiory;
@@ -15,51 +13,47 @@ using System.Security.Claims;
 using System.Text;
 public class UserRepository:IUserRepository
 {
-    private readonly ApplicationDbContext _db;
-    private readonly EmailSettings _emailSettings;
+    private readonly EmailSettings? _emailSettings;
 
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IEmailSender _emailSender;
 
-    private string secretKey;
+    private readonly string? _secretKey;
     private readonly SignInManager<ApplicationUser> _signInManager;
 
-    public UserRepository(ApplicationDbContext db, IConfiguration configuration, SignInManager<ApplicationUser> signInManage,
-        UserManager<ApplicationUser> userManager,IEmailSender emailSender, RoleManager<IdentityRole> roleManager)
+    public UserRepository(IConfiguration configuration, SignInManager<ApplicationUser> signInManage,
+        UserManager<ApplicationUser> userManager,IEmailSender emailSender)
     {
-        _db = db;
         _userManager = userManager;
         _signInManager = signInManage;
         _emailSender = emailSender;
         _emailSettings = configuration.GetSection("EmailSettings").Get<EmailSettings>();
 
-        secretKey = configuration.GetValue<string>("ApiSettings:Secret");
-        _roleManager = roleManager;
+        _secretKey = configuration.GetValue<string>("ApiSettings:Secret");
     }
 
-    public async    Task<Response<RegisterResponse>> Register(RegisterationRequestDTO registerationRequestDto)
+    public async    Task<Response<RegisterResponse>> Register(RegisterationRequestDTO signUp)
     {
         try
         {
-            var findUser = await _userManager.FindByNameAsync(registerationRequestDto.UserName);
+            var findUser = await _userManager.FindByNameAsync(signUp.UserName);
             if(findUser!=null)return ResponseFactory.Fail<RegisterResponse>();
             var user = new ApplicationUser
             {
-                UserName = registerationRequestDto.UserName,
-                Email = registerationRequestDto.Email,
-                FirstName = registerationRequestDto.FirstName,
-                LastName = registerationRequestDto.LastName
+                UserName = signUp.UserName,
+                Email = signUp.Email,
+                FirstName = signUp.FirstName,
+                LastName = signUp.LastName
             };
 
-            var result = await _userManager.CreateAsync(user, registerationRequestDto.Password);
+            var result = await _userManager.CreateAsync(user, signUp.Password);
             if (result.Succeeded == false)return ResponseFactory.Fail<RegisterResponse>();
             var sendEmailResult = await SendEmailConfirmationTokenAsync(user.Id);
 
             var data = new RegisterResponse
             {
-                Email = registerationRequestDto.Email,
-                Username = registerationRequestDto.UserName
+                Email = signUp.Email,
+                Username = signUp.UserName
             };
             return !sendEmailResult.Succeeded
                 ? ResponseFactory.Fail(sendEmailResult.Errors!, data)
@@ -72,15 +66,15 @@ public class UserRepository:IUserRepository
         }
     }
 
-    public async Task<Response<LoginResponse>> SignIn(LoginRequestDTO loginRequestDTO)
+    public async Task<Response<LoginResponse>> SignIn(LoginRequestDTO loginRequestDto)
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(loginRequestDTO.UserName);
+            var user = await _userManager.FindByEmailAsync(loginRequestDto.UserName);
 
             if (user == null) return ResponseFactory.Fail<LoginResponse>(ErrorsList.CannotFindUser);
 
-            var result = await _signInManager.PasswordSignInAsync(user, loginRequestDTO.Password, false, false);
+            var result = await _signInManager.PasswordSignInAsync(user, loginRequestDto.Password, false, false);
 
             if (!result.Succeeded) return ResponseFactory.Fail<LoginResponse>(ErrorsList.IncorrectEmailOrPassword);
 
@@ -90,12 +84,12 @@ public class UserRepository:IUserRepository
 
             var authClaims = new List<Claim>
                 {
-                    new(ClaimTypes.Name, loginRequestDTO.UserName),
+                    new(ClaimTypes.Name, loginRequestDto.UserName),
                     new(ClaimTypes.NameIdentifier, user.Id),
                     new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 }.Union(userClaims)
                 .Union(rolesClaims);
-            var authSigninKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey));
+            var authSigninKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_secretKey));
 
             var token = new JwtSecurityToken(
                 issuer: "your_issuer", 
@@ -104,7 +98,6 @@ public class UserRepository:IUserRepository
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigninKey, SecurityAlgorithms.HmacSha256Signature)
             );
-            if(token == null)return ResponseFactory.Fail<LoginResponse>(ErrorsList.CannotFindUser);
             var data = new LoginResponse
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
@@ -137,7 +130,8 @@ public class UserRepository:IUserRepository
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         token = System.Web.HttpUtility.UrlEncode(token);
 
-        var confirmationLink = new UriBuilder(_emailSettings.ConfirmationLinkBase)
+        if (_emailSettings?.ConfirmationLinkBase == null) return ResponseFactory.Fail(ErrorsList.CannotFindUser);
+        var confirmationLink = new UriBuilder(_emailSettings?.ConfirmationLinkBase)
         {
             Path = "api/Account/Confirm",
             Query = $"id={user.Id}&token={token}"
@@ -146,8 +140,8 @@ public class UserRepository:IUserRepository
         const string subject = "Competitive Programming Email Confirmation";
         var message = $"Hello {user.FirstName}<br>";
         message += $"This is your confirmation <a href=\"{confirmationLink}\">Link</a>";
-       
-        return  _emailSender.SendEmail(user.Email, subject, message);
+
+        return user.Email != null ? _emailSender.SendEmail(user.Email, subject, message) : ResponseFactory.Fail(ErrorsList.CannotFindUser);
     }
     public async Task<Response> Confirm(string id, string token)
     {
