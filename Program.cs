@@ -3,6 +3,7 @@ using System.Text;
 using JobPortal.Data;
 using JobPortal.Models;
 using JobPortal.Repository;
+using JobPortal.Repository.InterfaceRepository;
 using JobPortal.Repository.IRepostiory;
 using JobPortal.Utility.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +24,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 builder.Services.AddResponseCaching();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+
 
 var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
 var emailSettings = builder.Configuration.GetSection("EmailSettings").Get<EmailSettings>();
