@@ -21,7 +21,7 @@ To run the JobPortalAPI, ensure that you have the following prerequisites instal
 - [Entity Framework Core Tools](https://docs.microsoft.com/en-us/ef/core/cli/dotnet)
 
 
-## Version 1.0.3 (Current)
+## Version 1.0.4 (Current)
 
 ### Overview
 
@@ -47,14 +47,13 @@ The initial versions include fundamental features for user management (signin/si
    - JobController for handling CRUD operations on companies.
    - JobRepository for database interactions.
    - User property added to the Job model to establish a relationship.
-   
-5. **Planned Features for Future Versions**
+5.  **Applications:**
+    - Completed the implementation of application functionalities.
+    - ApplicationRepository for database interactions.
+    - ApplicationController for handling CRUD operations on applications.
+    - get all Applications for specific job.
 
-    - **Applications:**
-        - Complete the implementation of application functionalities.
-        - ApplicationController for handling CRUD operations on applications.
-        - UserRepository integration for user-related operations.
-        - Enhance application-related features such as status updates and notifications.
+6. **Planned Features for Future Versions**
 
     - **Posts:**
         - Introduce a Post model for handling user-generated content related to jobs or companies.
@@ -65,9 +64,10 @@ The initial versions include fundamental features for user management (signin/si
 
     - **Search and Filters:**
         - Implement search and filtering options for companies, job listings, and user-generated content.
-
+    - **Authentication:** In future releases, we plan to implement authentication mechanisms to secure the application. All controller methods will be decorated with the `[Authorize]` attribute, ensuring that only authenticated users can access these endpoints.
     - **Documentation:**
         - Continue improving API documentation using tools like Swagger.
+    - **Unit Test**
 
 
 
