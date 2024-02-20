@@ -22,54 +22,73 @@ public class JobRepository:IJobRepository
 
     }
 
-    public async Task<Response<Job>> AddJob(JobDto job)
+    public async Task<Response<JobResponse>> AddJob(JobDto job)
     {
         try
         {
             if (job.EmployerId == null)
             {
-                return ResponseFactory.Fail<Job>(ErrorsList.CannotFindUser);
+                return ResponseFactory.Fail<JobResponse>(ErrorsList.CannotFindUser);
             }
 
             var creatorUser = await _userManager.FindByIdAsync(job.EmployerId);
 
-            if (creatorUser == null) return ResponseFactory.Fail<Job>(ErrorsList.CannotFindUser);
+            if (creatorUser == null) return ResponseFactory.Fail<JobResponse>(ErrorsList.CannotFindUser);
 
             var newJob = new Job()
             {
                 Description = job.Description,
                 Title = job.Title,
                 Location=job.Location,
+                EmployerId = job.EmployerId,
+                Employer = creatorUser,
                 PostedDate = job.PostedDate,
                 ExpiryDate = job.ExpiryDate
             };
             await _db.Jobs.AddAsync(newJob);
             await _db.SaveChangesAsync();
-            return ResponseFactory.Ok(newJob);
+            var data = new JobResponse()
+            {
+                Id = newJob.Id,
+                Description = newJob.Description,
+                Title = newJob.Title,
+                Location = newJob.Location,
+                ExpiryDate = newJob.ExpiryDate,
+                PostedDate = newJob.PostedDate
+            };
+            return ResponseFactory.Ok(data);
         }
         catch (Exception ex)
         {
-            return ResponseFactory.FailFromException<Job>(ex);
+            return ResponseFactory.FailFromException<JobResponse>(ex);
         }
     }
 
-    public async Task<Response<Job>> UpdateJob(int jobId, JobDto jobDto)
+    public async Task<Response<JobResponse>> UpdateJob(int jobId, JobDto jobDto)
     {
         try
         {
             var job = await _db.Jobs.FindAsync(jobId);
 
-            if (job == null) return ResponseFactory.Fail<Job> (new Error{Description = "can't find the job" ,Code = "no such job with specific id"});
+            if (job == null) return ResponseFactory.Fail<JobResponse> (new Error{Description = "can't find the job" ,Code = "no such job with specific id"});
             job.Description = jobDto.Description;
             job.Title = jobDto.Title;
             job.Location = jobDto.Location;
             job.ExpiryDate = jobDto.ExpiryDate;
+            var data = new JobResponse()
+            {
+                Description = job.Description,
+                Title = job.Title,
+                Location = job.Location,
+                ExpiryDate = job.ExpiryDate,
+                PostedDate = job.PostedDate
+            };
             await _db.SaveChangesAsync();
-            return ResponseFactory.Ok(job);
+            return ResponseFactory.Ok(data);
         }
         catch (Exception ex)
         {
-            return ResponseFactory.FailFromException<Job>(ex);
+            return ResponseFactory.FailFromException<JobResponse>(ex);
         }
     }
 
@@ -93,6 +112,8 @@ public class JobRepository:IJobRepository
         try
         {
             var job = await _db.Jobs.FindAsync(jobId);
+            if (job == null) ResponseFactory.Fail(new Error{Description = "can't find the job" ,Code = "no such job with specific id"}) ;
+
             var responseDate = new JobResponse()
             {
                 Description = job.Description,
@@ -101,9 +122,7 @@ public class JobRepository:IJobRepository
                 PostedDate = job.PostedDate,
                 ExpiryDate = job.ExpiryDate
             };
-            return job == null ?
-                ResponseFactory.Fail<JobResponse> (new Error{Description = "can't find the job" ,Code = "no such job with specific id"}) : 
-                ResponseFactory.Ok(responseDate);
+            return  ResponseFactory.Ok(responseDate);
         }
         catch (Exception ex)
         {

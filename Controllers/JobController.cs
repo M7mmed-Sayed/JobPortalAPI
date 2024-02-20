@@ -26,7 +26,7 @@ public class JobController : Controller
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetJobById(int id)
     {
         var result = await _jobRepository.GetJobById(id);
@@ -38,8 +38,8 @@ public class JobController : Controller
         return Ok(result);
     }
 
-    [HttpPost("add-company")]
-    public async Task<IActionResult> AddCompany([FromBody] JobDto jobDto)
+    [HttpPost("add-job")]
+    public async Task<IActionResult> AddJob([FromBody] JobDto jobDto)
     {
         var result= await _jobRepository.AddJob(jobDto);
         if (!result.Succeeded)
@@ -50,7 +50,7 @@ public class JobController : Controller
         return Ok(result);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateJob(int id, [FromBody] JobDto jobDto)
     {
         
@@ -63,7 +63,7 @@ public class JobController : Controller
         return Ok(result);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteJob(int id)
     {
         var result=  await _jobRepository.DeleteJob(id);
