@@ -1,10 +1,10 @@
 ﻿using JobPortal.DTO;
-using JobPortal.Models;
 using JobPortal.Repository.InterfaceRepository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobPortal.Controllers;
-
+[Route("api/[controller]")]
+[ApiController]
 public class CompanyController : Controller
 {
     private readonly ICompanyRepository _companyRepository;
