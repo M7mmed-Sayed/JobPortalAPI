@@ -2,7 +2,6 @@
 using JobPortal.DTO.ReturnObjects;
 using JobPortal.Models;
 using JobPortal.Utility;
-
 namespace JobPortal.Repository;
 
 public interface IJobRepository

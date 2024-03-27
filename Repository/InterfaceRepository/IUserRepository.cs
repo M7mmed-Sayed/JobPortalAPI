@@ -11,4 +11,6 @@ public interface IUserRepository
     Task<Response> Confirm(string id, string token);
 
     Task<Response<RegisterResponse>> Register(RegisterationRequestDTO registerationRequestDTO);
+    Task<Response> addRole(string userId, string roleName);
+    Task<Response> RemoveRole(string userId, string roleName);
 }

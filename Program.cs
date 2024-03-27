@@ -6,6 +6,7 @@ using JobPortal.Models;
 using JobPortal.Repository;
 using JobPortal.Repository.InterfaceRepository;
 using JobPortal.Repository.IRepostiory;
+using JobPortal.Utility;
 using JobPortal.Utility.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +24,19 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.Tokens.ProviderMap.Add("Default", new TokenProviderDescriptor(typeof(DataProtectorTokenProvider<ApplicationUser>)));
     })
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+
+// Add roles seeding logic
+var serviceProvider = builder.Services.BuildServiceProvider();
+var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+var roleNames = RolesList.Roles;
+foreach (var role in roleNames)
+{
+    if (!await roleManager.RoleExistsAsync(role))
+    {
+        await roleManager.CreateAsync(new IdentityRole(role));
+    }
+}
 builder.Services.AddResponseCaching();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();

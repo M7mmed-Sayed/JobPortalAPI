@@ -53,7 +53,26 @@ public class AccountController : Controller
 
         return Ok(result);
     }
-   
+    [HttpPost("add-role")]
+    public async Task<IActionResult> addRole([FromQuery] string userId, [FromQuery] string roleName)
+    {
+        var result = await _userRepository.addRole(userId, roleName);
+        if (!result.Succeeded) {
+            return BadRequest(result);
+        }
 
+        return Ok(result);
+    }
+    [HttpDelete("remove-role")]
+    public async Task<IActionResult> removeRole([FromQuery] string userId, [FromQuery] string roleName)
+    {
+        var result = await _userRepository.RemoveRole(userId, roleName);
+        if (!result.Succeeded) {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+    
   
 }
